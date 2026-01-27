@@ -87,6 +87,15 @@ java -jar target/defterio-1.0.0.jar
 - `GET /api/v1/reports/by-category` - Kategori bazında kırılım
 - `GET /api/v1/reports/monthly` - Aylık trend raporu
 
+### Purchases
+- `GET /api/v1/purchases` - Tüm alımları listele (filtreli)
+- `POST /api/v1/purchases` - Yeni alım oluştur
+- `GET /api/v1/purchases/{id}` - Alım detayı
+- `PUT /api/v1/purchases/{id}` - Alım güncelle
+- `DELETE /api/v1/purchases/{id}` - Alım sil
+- `POST /api/v1/purchases/{id}/attachments` - Alıma dosya ekle
+- `GET /api/v1/purchases/{id}/attachments` - Alımın dosyalarını listele
+
 ### Swagger UI
 - `http://localhost:8080/swagger-ui.html` - API dokümantasyonu
 
@@ -298,6 +307,81 @@ Response:
 }
 ```
 
+### Create Purchase
+```bash
+curl -X POST http://localhost:8080/api/v1/purchases \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -d '{
+    "supplierId": 10,
+    "accountId": 1,
+    "date": "2026-01-27",
+    "currency": "TRY",
+    "note": "Kırtasiye alımı",
+    "lines": [
+      {
+        "description": "A4 Kağıt",
+        "quantity": 10,
+        "unitPrice": 85.50,
+        "categoryId": 3
+      },
+      {
+        "description": "Toner",
+        "quantity": 2,
+        "unitPrice": 450.00,
+        "categoryId": 3
+      }
+    ]
+  }'
+```
+
+Response:
+```json
+{
+  "data": {
+    "id": 1,
+    "supplierId": 10,
+    "supplierName": "ABC Tedarik A.Ş.",
+    "accountId": 1,
+    "accountName": "Ziraat Bankası",
+    "date": "2026-01-27",
+    "currency": "TRY",
+    "note": "Kırtasiye alımı",
+    "total": 1755.00,
+    "transactionId": 5,
+    "lines": [
+      {
+        "id": 1,
+        "description": "A4 Kağıt",
+        "quantity": 10,
+        "unitPrice": 85.50,
+        "lineTotal": 855.00,
+        "categoryId": 3,
+        "categoryName": "Ofis"
+      },
+      {
+        "id": 2,
+        "description": "Toner",
+        "quantity": 2,
+        "unitPrice": 450.00,
+        "lineTotal": 900.00,
+        "categoryId": 3,
+        "categoryName": "Ofis"
+      }
+    ],
+    "createdAt": "2026-01-27T10:30:00",
+    "updatedAt": "2026-01-27T10:30:00"
+  }
+}
+```
+
+### Upload Attachment to Purchase
+```bash
+curl -X POST http://localhost:8080/api/v1/purchases/1/attachments \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -F "file=@/path/to/invoice.pdf"
+```
+
 ## Yapılandırma
 
 Uygulama ayarları `src/main/resources/application.yml` dosyasındadır.
@@ -333,6 +417,7 @@ src/main/java/com/defterio/
 6. ✅ Transactions + validasyon
 7. ✅ Attachments (upload/list/download)
 8. ✅ Reports (summary, by-category, monthly)
+9. ✅ Purchases (multi-line purchase with auto transaction)
 
 ## Lisans
 

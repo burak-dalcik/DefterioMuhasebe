@@ -1,5 +1,6 @@
 package com.defterio.entity;
 
 public enum OwnerType {
-    TRANSACTION
+    TRANSACTION,
+    PURCHASE
 }

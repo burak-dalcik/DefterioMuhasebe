@@ -40,6 +40,16 @@ public class AttachmentService {
         Transaction transaction = transactionRepository.findById(transactionId)
                 .orElseThrow(() -> new NotFoundException("Transaction not found"));
 
+        return upload(OwnerType.TRANSACTION, transactionId, file, uploadedBy);
+    }
+
+    @Transactional
+    public AttachmentResponse uploadPurchase(Long purchaseId, MultipartFile file, String uploadedBy) {
+        return upload(OwnerType.PURCHASE, purchaseId, file, uploadedBy);
+    }
+
+    @Transactional
+    public AttachmentResponse upload(OwnerType ownerType, Long ownerId, MultipartFile file, String uploadedBy) {
         validateFile(file);
 
         String originalFileName = file.getOriginalFilename();
@@ -48,7 +58,7 @@ public class AttachmentService {
         }
 
         String sanitizedFileName = sanitizeFileName(originalFileName);
-        String storageKey = generateStorageKey(transactionId, sanitizedFileName);
+        String storageKey = generateStorageKey(ownerType, ownerId, sanitizedFileName);
 
         try {
             storageService.save(file.getInputStream(), file.getSize(), file.getContentType(), storageKey);
@@ -57,8 +67,8 @@ public class AttachmentService {
         }
 
         Attachment attachment = Attachment.builder()
-                .ownerType(OwnerType.TRANSACTION)
-                .ownerId(transactionId)
+                .ownerType(ownerType)
+                .ownerId(ownerId)
                 .fileName(originalFileName)
                 .contentType(file.getContentType())
                 .size(file.getSize())
@@ -72,9 +82,15 @@ public class AttachmentService {
     }
 
     public List<AttachmentResponse> findByTransactionId(Long transactionId) {
-        List<Attachment> attachments = attachmentRepository.findByOwnerTypeAndOwnerId(
-                OwnerType.TRANSACTION, transactionId
-        );
+        return findByOwner(OwnerType.TRANSACTION, transactionId);
+    }
+
+    public List<AttachmentResponse> findByPurchaseId(Long purchaseId) {
+        return findByOwner(OwnerType.PURCHASE, purchaseId);
+    }
+
+    public List<AttachmentResponse> findByOwner(OwnerType ownerType, Long ownerId) {
+        List<Attachment> attachments = attachmentRepository.findByOwnerTypeAndOwnerId(ownerType, ownerId);
         return attachments.stream()
                 .map(this::toResponse)
                 .collect(Collectors.toList());
@@ -121,9 +137,10 @@ public class AttachmentService {
         return Paths.get(sanitized).getFileName().toString();
     }
 
-    private String generateStorageKey(Long transactionId, String fileName) {
+    private String generateStorageKey(OwnerType ownerType, Long ownerId, String fileName) {
         String uuid = UUID.randomUUID().toString();
-        return String.format("transactions/%d/%s_%s", transactionId, uuid, fileName);
+        String folder = ownerType == OwnerType.TRANSACTION ? "transactions" : "purchases";
+        return String.format("%s/%d/%s_%s", folder, ownerId, uuid, fileName);
     }
 
     private AttachmentResponse toResponse(Attachment attachment) {

@@ -50,6 +50,28 @@ public class AttachmentController {
         return ResponseEntity.ok(result);
     }
 
+    @PostMapping(value = "/purchases/{id}/attachments", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Operation(summary = "Upload attachment to purchase")
+    public ResponseEntity<Map<String, Object>> uploadPurchase(
+            @PathVariable Long id,
+            @RequestParam("file") MultipartFile file,
+            Authentication authentication) {
+        String uploadedBy = authentication.getName();
+        AttachmentResponse response = attachmentService.uploadPurchase(id, file, uploadedBy);
+        Map<String, Object> result = new HashMap<>();
+        result.put("data", response);
+        return ResponseEntity.status(HttpStatus.CREATED).body(result);
+    }
+
+    @GetMapping("/purchases/{id}/attachments")
+    @Operation(summary = "Get all attachments for a purchase")
+    public ResponseEntity<Map<String, Object>> getByPurchaseId(@PathVariable Long id) {
+        List<AttachmentResponse> attachments = attachmentService.findByPurchaseId(id);
+        Map<String, Object> result = new HashMap<>();
+        result.put("data", attachments);
+        return ResponseEntity.ok(result);
+    }
+
     @GetMapping("/attachments/{id}/download")
     @Operation(summary = "Download attachment")
     public ResponseEntity<Resource> download(@PathVariable Long id) {
