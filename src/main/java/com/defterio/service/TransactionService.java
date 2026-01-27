@@ -27,6 +27,8 @@ public class TransactionService {
     private final CategoryRepository categoryRepository;
     private final AccountRepository accountRepository;
     private final ContactRepository contactRepository;
+    private final AttachmentRepository attachmentRepository;
+    private final StorageService storageService;
 
     public Page<TransactionResponse> findAll(
             LocalDate from,
@@ -132,6 +134,13 @@ public class TransactionService {
     public void delete(Long id) {
         Transaction transaction = transactionRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Transaction not found"));
+
+        attachmentRepository.findByOwnerTypeAndOwnerId(OwnerType.TRANSACTION, id)
+                .forEach(attachment -> {
+                    storageService.delete(attachment.getStorageKey());
+                    attachmentRepository.delete(attachment);
+                });
+
         transactionRepository.delete(transaction);
     }
 

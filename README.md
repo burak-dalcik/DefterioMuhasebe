@@ -76,6 +76,12 @@ java -jar target/defterio-1.0.0.jar
 - `PUT /api/v1/transactions/{id}` - Hareket güncelle
 - `DELETE /api/v1/transactions/{id}` - Hareket sil
 
+### Attachments
+- `POST /api/v1/transactions/{id}/attachments` - Transaction'a dosya ekle
+- `GET /api/v1/transactions/{id}/attachments` - Transaction'ın dosyalarını listele
+- `GET /api/v1/attachments/{id}/download` - Dosya indir
+- `DELETE /api/v1/attachments/{id}` - Dosya sil
+
 ### Swagger UI
 - `http://localhost:8080/swagger-ui.html` - API dokümantasyonu
 
@@ -185,6 +191,42 @@ curl -X GET "http://localhost:8080/api/v1/transactions?from=2026-01-01&to=2026-0
   -H "Authorization: Bearer YOUR_TOKEN"
 ```
 
+### Upload Attachment
+```bash
+curl -X POST http://localhost:8080/api/v1/transactions/1/attachments \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -F "file=@/path/to/document.pdf"
+```
+
+Response:
+```json
+{
+  "data": {
+    "id": 1,
+    "ownerType": "TRANSACTION",
+    "ownerId": 1,
+    "fileName": "document.pdf",
+    "contentType": "application/pdf",
+    "size": 245678,
+    "uploadedAt": "2026-01-27T10:30:00Z",
+    "uploadedBy": "user@example.com"
+  }
+}
+```
+
+### Download Attachment
+```bash
+curl -X GET http://localhost:8080/api/v1/attachments/1/download \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -o downloaded_file.pdf
+```
+
+### List Attachments for Transaction
+```bash
+curl -X GET http://localhost:8080/api/v1/transactions/1/attachments \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
 ## Yapılandırma
 
 Uygulama ayarları `src/main/resources/application.yml` dosyasındadır.
@@ -218,7 +260,7 @@ src/main/java/com/defterio/
 4. ✅ Categories CRUD
 5. ✅ Accounts CRUD
 6. ✅ Transactions + validasyon
-7. ⏳ Attachments (upload/list/download)
+7. ✅ Attachments (upload/list/download)
 
 ## Lisans
 
