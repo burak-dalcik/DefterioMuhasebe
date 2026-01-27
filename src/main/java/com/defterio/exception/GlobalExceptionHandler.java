@@ -2,6 +2,7 @@ package com.defterio.exception;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -28,6 +29,22 @@ public class GlobalExceptionHandler {
         
         response.put("details", details);
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    }
+
+    @ExceptionHandler(ConflictException.class)
+    public ResponseEntity<Map<String, Object>> handleConflictException(ConflictException ex) {
+        Map<String, Object> response = new HashMap<>();
+        response.put("code", "CONFLICT");
+        response.put("message", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
+    }
+
+    @ExceptionHandler({UnauthorizedException.class, BadCredentialsException.class})
+    public ResponseEntity<Map<String, Object>> handleUnauthorizedException(Exception ex) {
+        Map<String, Object> response = new HashMap<>();
+        response.put("code", "UNAUTHORIZED");
+        response.put("message", "Invalid credentials");
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
     }
 
     @ExceptionHandler(IllegalArgumentException.class)

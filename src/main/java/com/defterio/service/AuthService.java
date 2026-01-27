@@ -1,15 +1,18 @@
 package com.defterio.service;
 
-import com.defterio.dto.AuthResponse;
+import com.defterio.config.JwtProperties;
 import com.defterio.dto.LoginRequest;
+import com.defterio.dto.LoginResponse;
 import com.defterio.dto.RegisterRequest;
+import com.defterio.dto.RegisterResponse;
 import com.defterio.entity.Role;
 import com.defterio.entity.User;
+import com.defterio.exception.ConflictException;
 import com.defterio.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,11 +25,12 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
+    private final JwtProperties jwtProperties;
 
     @Transactional
-    public AuthResponse register(RegisterRequest request) {
+    public RegisterResponse register(RegisterRequest request) {
         if (userRepository.existsByEmail(request.getEmail())) {
-            throw new IllegalArgumentException("Email already exists");
+            throw new ConflictException("Email already exists");
         }
 
         User user = User.builder()
@@ -37,32 +41,35 @@ public class AuthService {
 
         user = userRepository.save(user);
 
-        String token = jwtService.generateToken(user);
-
-        return AuthResponse.builder()
-                .token(token)
+        return RegisterResponse.builder()
+                .id(user.getId())
                 .email(user.getEmail())
                 .role(user.getRole().name())
                 .build();
     }
 
-    public AuthResponse login(LoginRequest request) {
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        request.getEmail(),
-                        request.getPassword()
-                )
-        );
+    public LoginResponse login(LoginRequest request) {
+        try {
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            request.getEmail(),
+                            request.getPassword()
+                    )
+            );
+        } catch (BadCredentialsException e) {
+            throw new BadCredentialsException("Invalid credentials");
+        }
 
         User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+                .orElseThrow(() -> new BadCredentialsException("Invalid credentials"));
 
         String token = jwtService.generateToken(user);
+        Long expiresIn = jwtProperties.getExpiration() / 1000;
 
-        return AuthResponse.builder()
-                .token(token)
-                .email(user.getEmail())
-                .role(user.getRole().name())
+        return LoginResponse.builder()
+                .accessToken(token)
+                .tokenType("Bearer")
+                .expiresIn(expiresIn)
                 .build();
     }
 }
