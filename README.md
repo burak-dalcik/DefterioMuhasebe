@@ -69,6 +69,13 @@ java -jar target/defterio-1.0.0.jar
 - `PUT /api/v1/accounts/{id}` - Hesap güncelle
 - `DELETE /api/v1/accounts/{id}` - Hesap sil
 
+### Transactions
+- `GET /api/v1/transactions` - Tüm hareketleri listele (filtreli)
+- `POST /api/v1/transactions` - Yeni hareket oluştur
+- `GET /api/v1/transactions/{id}` - Hareket detayı
+- `PUT /api/v1/transactions/{id}` - Hareket güncelle
+- `DELETE /api/v1/transactions/{id}` - Hareket sil
+
 ### Swagger UI
 - `http://localhost:8080/swagger-ui.html` - API dokümantasyonu
 
@@ -154,6 +161,30 @@ curl -X POST http://localhost:8080/api/v1/accounts \
   }'
 ```
 
+### Create Transaction
+```bash
+curl -X POST http://localhost:8080/api/v1/transactions \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -d '{
+    "type": "EXPENSE",
+    "subtype": "PURCHASE",
+    "amount": 1250.50,
+    "currency": "TRY",
+    "date": "2026-01-27",
+    "description": "Ofis malzemeleri",
+    "categoryId": 3,
+    "accountId": 1,
+    "contactId": 10
+  }'
+```
+
+### Get Transactions with Filters
+```bash
+curl -X GET "http://localhost:8080/api/v1/transactions?from=2026-01-01&to=2026-01-31&type=EXPENSE&subtype=PURCHASE&page=0&size=20" \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
 ## Yapılandırma
 
 Uygulama ayarları `src/main/resources/application.yml` dosyasındadır.
@@ -186,7 +217,7 @@ src/main/java/com/defterio/
 3. ✅ Contacts CRUD
 4. ✅ Categories CRUD
 5. ✅ Accounts CRUD
-6. ⏳ Transactions + validasyon
+6. ✅ Transactions + validasyon
 7. ⏳ Attachments (upload/list/download)
 
 ## Lisans
