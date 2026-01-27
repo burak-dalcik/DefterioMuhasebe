@@ -82,6 +82,11 @@ java -jar target/defterio-1.0.0.jar
 - `GET /api/v1/attachments/{id}/download` - Dosya indir
 - `DELETE /api/v1/attachments/{id}` - Dosya sil
 
+### Reports
+- `GET /api/v1/reports/summary` - Özet rapor (gelir, gider, net)
+- `GET /api/v1/reports/by-category` - Kategori bazında kırılım
+- `GET /api/v1/reports/monthly` - Aylık trend raporu
+
 ### Swagger UI
 - `http://localhost:8080/swagger-ui.html` - API dokümantasyonu
 
@@ -227,6 +232,72 @@ curl -X GET http://localhost:8080/api/v1/transactions/1/attachments \
   -H "Authorization: Bearer YOUR_TOKEN"
 ```
 
+### Get Summary Report
+```bash
+curl -X GET "http://localhost:8080/api/v1/reports/summary?from=2026-01-01&to=2026-01-31&currency=TRY" \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+Response:
+```json
+{
+  "data": {
+    "from": "2026-01-01",
+    "to": "2026-01-31",
+    "currency": "TRY",
+    "totalIncome": 10000.00,
+    "totalExpense": 6500.00,
+    "net": 3500.00
+  }
+}
+```
+
+### Get Report by Category
+```bash
+curl -X GET "http://localhost:8080/api/v1/reports/by-category?from=2026-01-01&to=2026-01-31&type=EXPENSE&currency=TRY" \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+Response:
+```json
+{
+  "data": [
+    {
+      "categoryId": 3,
+      "categoryName": "Ofis",
+      "total": 1200.00
+    },
+    {
+      "categoryId": 5,
+      "categoryName": "Kira",
+      "total": 3000.00
+    }
+  ]
+}
+```
+
+### Get Monthly Trend Report
+```bash
+curl -X GET "http://localhost:8080/api/v1/reports/monthly?year=2026&type=EXPENSE&currency=TRY" \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+Response:
+```json
+{
+  "data": [
+    {
+      "month": "2026-01",
+      "total": 6500.00
+    },
+    {
+      "month": "2026-02",
+      "total": 1200.00
+    }
+  ]
+}
+```
+
 ## Yapılandırma
 
 Uygulama ayarları `src/main/resources/application.yml` dosyasındadır.
@@ -261,6 +332,7 @@ src/main/java/com/defterio/
 5. ✅ Accounts CRUD
 6. ✅ Transactions + validasyon
 7. ✅ Attachments (upload/list/download)
+8. ✅ Reports (summary, by-category, monthly)
 
 ## Lisans
 
