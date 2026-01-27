@@ -1,0 +1,2 @@
+-- Initial migration
+-- This file will be populated in later steps
