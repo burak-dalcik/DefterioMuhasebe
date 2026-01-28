@@ -1,5 +1,6 @@
 package com.defterio.controller;
 
+import com.defterio.dto.BudgetVarianceResponse;
 import com.defterio.dto.CategoryTotalResponse;
 import com.defterio.dto.MonthlyTotalResponse;
 import com.defterio.dto.SummaryReportResponse;
@@ -81,6 +82,19 @@ public class ReportController {
             @RequestParam TransactionType type,
             @RequestParam(defaultValue = "TRY") String currency) {
         List<MonthlyTotalResponse> response = reportService.getMonthly(year, type, currency);
+        Map<String, Object> result = new HashMap<>();
+        result.put("data", response);
+        return ResponseEntity.ok(result);
+    }
+
+    @GetMapping("/budget-variance")
+    @Operation(summary = "Get budget vs actual variance by category")
+    public ResponseEntity<Map<String, Object>> getBudgetVariance(
+            @RequestParam Integer year,
+            @RequestParam Integer month,
+            @RequestParam(required = false) TransactionType type,
+            @RequestParam(defaultValue = "TRY") String currency) {
+        List<BudgetVarianceResponse> response = reportService.getBudgetVariance(year, month, type, currency);
         Map<String, Object> result = new HashMap<>();
         result.put("data", response);
         return ResponseEntity.ok(result);

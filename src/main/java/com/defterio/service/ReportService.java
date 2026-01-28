@@ -1,9 +1,12 @@
 package com.defterio.service;
 
+import com.defterio.dto.BudgetVarianceResponse;
 import com.defterio.dto.CategoryTotalResponse;
 import com.defterio.dto.MonthlyTotalResponse;
 import com.defterio.dto.SummaryReportResponse;
+import com.defterio.entity.Budget;
 import com.defterio.entity.TransactionType;
+import com.defterio.repository.BudgetRepository;
 import com.defterio.repository.TransactionRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -18,6 +21,7 @@ import java.util.stream.Collectors;
 public class ReportService {
 
     private final TransactionRepository transactionRepository;
+    private final BudgetRepository budgetRepository;
 
     public SummaryReportResponse getSummary(LocalDate from, LocalDate to, String currency) {
         validateDateRange(from, to);
@@ -84,6 +88,52 @@ public class ReportService {
                         .total((BigDecimal) row[1])
                         .build())
                 .collect(Collectors.toList());
+    }
+
+    public List<BudgetVarianceResponse> getBudgetVariance(Integer year, Integer month, TransactionType type, String currency) {
+        if (year == null || month == null) {
+            throw new IllegalArgumentException("Year and month are required");
+        }
+
+        if (type == null) {
+            type = TransactionType.EXPENSE;
+        }
+
+        java.time.LocalDate from = java.time.LocalDate.of(year, month, 1);
+        java.time.LocalDate to = from.withDayOfMonth(from.lengthOfMonth());
+
+        validateDateRange(from, to);
+
+        java.util.List<Budget> budgets = budgetRepository.findByYearAndMonth(year, month);
+
+        java.util.List<Object[]> actualResults = transactionRepository.sumByCategoryAndTypeAndDateRangeAndCurrency(
+                type, from, to, currency
+        );
+
+        java.util.Map<Long, java.math.BigDecimal> actualByCategory = actualResults.stream()
+                .collect(java.util.stream.Collectors.toMap(
+                        row -> ((Number) row[0]).longValue(),
+                        row -> (java.math.BigDecimal) row[2]
+                ));
+
+        return budgets.stream()
+                .map(budget -> {
+                    java.math.BigDecimal budgetAmount = budget.getAmount();
+                    java.math.BigDecimal actualAmount = actualByCategory.getOrDefault(
+                            budget.getCategory().getId(), java.math.BigDecimal.ZERO);
+                    java.math.BigDecimal variance = actualAmount.subtract(budgetAmount);
+
+                    return BudgetVarianceResponse.builder()
+                            .categoryId(budget.getCategory().getId())
+                            .categoryName(budget.getCategory().getName())
+                            .year(budget.getYear())
+                            .month(budget.getMonth())
+                            .budgetAmount(budgetAmount)
+                            .actualAmount(actualAmount)
+                            .variance(variance)
+                            .build();
+                })
+                .collect(java.util.stream.Collectors.toList());
     }
 
     private void validateDateRange(LocalDate from, LocalDate to) {
