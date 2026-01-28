@@ -39,6 +39,28 @@ public class ReportController {
         return ResponseEntity.ok(result);
     }
 
+    @GetMapping("/daily")
+    @Operation(summary = "Get daily summary report")
+    public ResponseEntity<Map<String, Object>> getDaily(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
+            @RequestParam(defaultValue = "TRY") String currency) {
+        SummaryReportResponse response = reportService.getDaily(date, currency);
+        Map<String, Object> result = new HashMap<>();
+        result.put("data", response);
+        return ResponseEntity.ok(result);
+    }
+
+    @GetMapping("/weekly")
+    @Operation(summary = "Get weekly summary report")
+    public ResponseEntity<Map<String, Object>> getWeekly(
+            @RequestParam("weekStart") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate weekStart,
+            @RequestParam(defaultValue = "TRY") String currency) {
+        SummaryReportResponse response = reportService.getWeekly(weekStart, currency);
+        Map<String, Object> result = new HashMap<>();
+        result.put("data", response);
+        return ResponseEntity.ok(result);
+    }
+
     @GetMapping("/by-category")
     @Operation(summary = "Get transactions grouped by category")
     public ResponseEntity<Map<String, Object>> getByCategory(

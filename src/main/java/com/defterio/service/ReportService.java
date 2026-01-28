@@ -48,6 +48,15 @@ public class ReportService {
                 .build();
     }
 
+    public SummaryReportResponse getDaily(LocalDate date, String currency) {
+        return getSummary(date, date, currency);
+    }
+
+    public SummaryReportResponse getWeekly(LocalDate weekStart, String currency) {
+        LocalDate weekEnd = weekStart.plusDays(6);
+        return getSummary(weekStart, weekEnd, currency);
+    }
+
     public List<CategoryTotalResponse> getByCategory(LocalDate from, LocalDate to, TransactionType type, String currency) {
         validateDateRange(from, to);
 
