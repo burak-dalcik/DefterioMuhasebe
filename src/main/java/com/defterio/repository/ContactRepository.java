@@ -15,7 +15,9 @@ public interface ContactRepository extends JpaRepository<Contact, Long> {
     @Query("SELECT c FROM Contact c WHERE " +
            "(:query IS NULL OR LOWER(c.name) LIKE LOWER(CONCAT('%', :query, '%'))) AND " +
            "(:type IS NULL OR c.type = :type)")
-    Page<Contact> findByQueryAndType(@Param("query") String query, 
-                                     @Param("type") ContactType type, 
+    Page<Contact> findByQueryAndType(@Param("query") String query,
+                                     @Param("type") ContactType type,
                                      Pageable pageable);
+
+    long countByType(ContactType type);
 }

@@ -24,6 +24,10 @@ public class ContactService {
         return contacts.map(this::toResponse);
     }
 
+    public long countSuppliers() {
+        return contactRepository.countByType(ContactType.SUPPLIER);
+    }
+
     public ContactResponse findById(Long id) {
         Contact contact = contactRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Contact not found"));

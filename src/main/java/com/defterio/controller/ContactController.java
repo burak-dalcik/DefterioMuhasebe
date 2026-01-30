@@ -41,6 +41,7 @@ public class ContactController {
         meta.put("size", contacts.getSize());
         meta.put("totalElements", contacts.getTotalElements());
         meta.put("totalPages", contacts.getTotalPages());
+        meta.put("supplierCount", contactService.countSuppliers());
         result.put("meta", meta);
         return ResponseEntity.ok(result);
     }
