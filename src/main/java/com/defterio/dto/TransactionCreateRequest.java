@@ -18,11 +18,15 @@ public class TransactionCreateRequest {
 
     @NotNull(message = "Amount is required")
     @DecimalMin(value = "0.01", message = "Amount must be greater than 0")
+    @Digits(integer = 16, fraction = 2, message = "Amount must have at most 16 integer and 2 decimal digits")
     private BigDecimal amount;
 
+    @Size(min = 3, max = 3, message = "Currency must be a 3-letter code (e.g. TRY, USD)")
+    @Pattern(regexp = "[A-Z]{3}", message = "Currency must be uppercase (e.g. TRY, USD)")
     private String currency;
 
     @NotNull(message = "Date is required")
+    @PastOrPresent(message = "Transaction date cannot be in the future")
     private LocalDate date;
 
     @Size(max = 500, message = "Description must not exceed 500 characters")
